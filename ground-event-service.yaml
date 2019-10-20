@@ -1,0 +1,51 @@
+##################################################################################################
+# ground event service
+##################################################################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ground-event-service
+  labels:
+    app: ground-event-service
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ground-event-service
+        version: "1.0"
+        serving: "true"
+    spec:
+      containers:
+        - name: ground-event-service
+          image: sbishyr/ground-event-service:0.2
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8082
+          env:
+            - name: EVENTS_URL
+              value: http://event-service:8080
+            - name: PLAYERS_URL
+              value: http://player-service:8081
+  selector:
+    matchLabels:
+      app: ground-event-service
+      version: "1.0"
+      serving: "true"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ground-event-service
+  labels:
+    app: ground-event-service
+spec:
+  type: NodePort
+  ports:
+    - port: 8082
+      targetPort: 8082
+      protocol: TCP
+      name: http
+  selector:
+    app: ground-event-service
+    serving: "true"
